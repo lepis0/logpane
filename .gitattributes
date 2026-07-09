@@ -1,0 +1,9 @@
+# Force LF everywhere, regardless of platform autocrlf settings - this repo
+# ships a shell entrypoint script that must run unmodified inside Linux
+# containers, and the Docker build reads straight from the working tree.
+* text=auto eol=lf
+*.sh text eol=lf
+*.go text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+Dockerfile text eol=lf

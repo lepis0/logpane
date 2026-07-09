@@ -1,0 +1,15 @@
+services:
+  logpane:
+    image: ghcr.io/lepis0/logpane:latest
+    container_name: logpane
+    ports:
+      - "8080:8080"
+    volumes:
+      - /mnt/user/appdata/logpane:/config
+      - /mnt/user/system/docker:/logs/docker:ro
+      - /var/log:/logs/hostvar:ro
+    environment:
+      - PUID=99
+      - PGID=100
+      - TZ=Europe/Helsinki
+    restart: unless-stopped
