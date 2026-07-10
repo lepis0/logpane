@@ -42,10 +42,3 @@ export function formatRelativeTime(iso: string | undefined | null, now: number =
   return relativeTimeFormatter.format(Math.round(diffMs / 1000), "second");
 }
 
-/** Local 24h clock time, e.g. "14:03:21", for per-line timestamps. */
-export function formatClockTime(iso: string | undefined | null): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleTimeString(undefined, { hour12: false });
-}

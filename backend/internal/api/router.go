@@ -42,6 +42,7 @@ func NewRouter(store *config.Store, manager *tail.Manager, wsHandler http.Handle
 			r.Get("/", h.listSources)
 			r.Post("/", h.createSource)
 			r.Post("/validate", h.validateSource)
+			r.Get("/browse", h.browseFilesystem)
 
 			r.Route("/{id}", func(r chi.Router) {
 				r.Get("/", h.getSource)

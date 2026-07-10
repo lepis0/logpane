@@ -3,7 +3,6 @@ import type { LogLineEntry } from "../../types/logLine";
 import type { CompiledMatcher } from "../../lib/highlight";
 import { buildSegments } from "../../lib/highlight";
 import { detectLogLevel, LEVEL_TEXT_CLASSNAME } from "../../lib/levels";
-import { formatClockTime } from "../../lib/format";
 import { LevelBadge } from "./LevelBadge";
 import { cn } from "../../lib/cn";
 
@@ -20,9 +19,6 @@ export const LogLine = memo(function LogLine({ entry, matcher, showBadge = true 
 
   return (
     <div className="flex items-start gap-2 px-3 py-0.5 font-mono text-[13px] leading-5 hover:bg-slate-100/70 dark:hover:bg-slate-800/40">
-      <span className="shrink-0 select-none pt-px tabular-nums text-slate-400 dark:text-slate-600">
-        {formatClockTime(entry.ts)}
-      </span>
       {showBadge && level && <LevelBadge level={level} className="mt-px" />}
       <span
         className={cn(

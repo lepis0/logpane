@@ -3,12 +3,13 @@ import * as Dialog from "@radix-ui/react-dialog";
 import * as Select from "@radix-ui/react-select";
 import * as Switch from "@radix-ui/react-switch";
 import { toast } from "sonner";
-import { Check, ChevronDown, Loader2, X } from "lucide-react";
+import { Check, ChevronDown, Folder, Loader2, X } from "lucide-react";
 import { useCreateSource, useUpdateSource, useValidateSource } from "../../api/sources";
 import type { Source, SourceType } from "../../types/source";
 import { formatBytes } from "../../lib/format";
 import { cn } from "../../lib/cn";
 import { Button } from "../common/Button";
+import { FileBrowserDialog } from "./FileBrowserDialog";
 
 export interface SourceFormDialogProps {
   mode: "create" | "edit";
@@ -56,6 +57,10 @@ function formFromSource(source: Source): FormState {
   };
 }
 
+function dirname(path: string): string {
+  return path.replace(/\/[^/]*$/, "") || "/";
+}
+
 function splitList(value: string): string[] {
   return value
     .split(/[\n,]/)
@@ -76,14 +81,22 @@ function SourceFormDialogInner({ mode, open, onOpenChange, source }: SourceFormD
   const createMutation = useCreateSource();
   const updateMutation = useUpdateSource();
   const validateMutation = useValidateSource();
+  const [browseOpen, setBrowseOpen] = useState(false);
 
-  const runValidate = () => {
-    if (!form.path.trim()) return;
+  const runValidate = (pathOverride?: string) => {
+    const path = (pathOverride ?? form.path).trim();
+    if (!path) return;
     validateMutation.mutate({
       type: form.type,
-      path: form.path.trim(),
+      path,
       excludePatterns: splitList(form.excludePatterns),
     });
+  };
+
+  const selectPath = (path: string) => {
+    setForm((f) => ({ ...f, path }));
+    runValidate(path);
+    setBrowseOpen(false);
   };
 
   const saving = createMutation.isPending || updateMutation.isPending;
@@ -214,14 +227,24 @@ function SourceFormDialogInner({ mode, open, onOpenChange, source }: SourceFormD
               <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
                 Path {form.type === "glob" && "(glob pattern)"}
               </span>
-              <input
-                value={form.path}
-                onChange={(e) => setForm((f) => ({ ...f, path: e.target.value }))}
-                onBlur={runValidate}
-                required
-                placeholder={form.type === "glob" ? "/var/log/app/*.log" : "/var/log/app/current.log"}
-                className="w-full rounded-md border border-slate-300 bg-transparent px-2.5 py-1.5 font-mono text-sm outline-none focus:border-sky-500 dark:border-slate-700"
-              />
+              <div className="flex gap-1.5">
+                <input
+                  value={form.path}
+                  onChange={(e) => setForm((f) => ({ ...f, path: e.target.value }))}
+                  onBlur={() => runValidate()}
+                  required
+                  placeholder={form.type === "glob" ? "/var/log/app/*.log" : "/var/log/app/current.log"}
+                  className="w-full rounded-md border border-slate-300 bg-transparent px-2.5 py-1.5 font-mono text-sm outline-none focus:border-sky-500 dark:border-slate-700"
+                />
+                <Button
+                  type="button"
+                  size="icon"
+                  aria-label="Browse"
+                  onClick={() => setBrowseOpen(true)}
+                >
+                  <Folder className="size-4" />
+                </Button>
+              </div>
             </label>
 
             <label className="block">
@@ -231,7 +254,7 @@ function SourceFormDialogInner({ mode, open, onOpenChange, source }: SourceFormD
               <textarea
                 value={form.excludePatterns}
                 onChange={(e) => setForm((f) => ({ ...f, excludePatterns: e.target.value }))}
-                onBlur={runValidate}
+                onBlur={() => runValidate()}
                 rows={2}
                 placeholder="*.gz"
                 className="w-full resize-none rounded-md border border-slate-300 bg-transparent px-2.5 py-1.5 font-mono text-sm outline-none focus:border-sky-500 dark:border-slate-700"
@@ -321,6 +344,15 @@ function SourceFormDialogInner({ mode, open, onOpenChange, source }: SourceFormD
           </form>
         </Dialog.Content>
       </Dialog.Portal>
+      {browseOpen && (
+        <FileBrowserDialog
+          open={browseOpen}
+          onOpenChange={setBrowseOpen}
+          initialPath={form.path ? dirname(form.path) : "/"}
+          mode={form.type === "glob" ? "directory" : "file"}
+          onSelect={selectPath}
+        />
+      )}
     </Dialog.Root>
   );
 }

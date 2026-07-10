@@ -64,3 +64,21 @@ export interface SourceFile {
   modTime: string;
   active: boolean;
 }
+
+export interface BrowseEntry {
+  name: string;
+  path: string;
+  type: "dir" | "file" | "other";
+  size: number;
+  modTime: string;
+}
+
+/** Response for GET /sources/browse?path= - always 200, even for an unreadable path. */
+export interface BrowseResult {
+  path: string;
+  /** Parent directory's path, or "" when path is the filesystem root. */
+  parent: string;
+  entries: BrowseEntry[];
+  readable: boolean;
+  message: string;
+}

@@ -4,6 +4,7 @@ import { apiClient, API_BASE_PATH } from "./client";
 import { wsClient } from "./ws";
 import type { LinesPage } from "../types/logLine";
 import type {
+  BrowseResult,
   CreateSourceInput,
   Source,
   SourceFile,
@@ -17,6 +18,7 @@ export const sourceKeys = {
   detail: (id: string) => ["sources", id] as const,
   lines: (id: string, params: LinesParams) => ["sources", id, "lines", params] as const,
   files: (id: string) => ["sources", id, "files"] as const,
+  browse: (path: string) => ["sources", "browse", path] as const,
 };
 
 // ---- Plain REST calls -------------------------------------------------
@@ -63,6 +65,10 @@ export function fetchSourceFiles(id: string): Promise<SourceFile[]> {
 
 export function rollSource(id: string): Promise<void> {
   return apiClient.post<void>(`/sources/${encodeURIComponent(id)}/roll`);
+}
+
+export function fetchBrowseDir(path: string): Promise<BrowseResult> {
+  return apiClient.get<BrowseResult>("/sources/browse", { query: { path } });
 }
 
 /** Download is a plain browser navigation (not fetched here) so Content-Disposition drives the save dialog. */
@@ -147,6 +153,14 @@ export function useSourceFiles(id: string | undefined) {
 
 export function useRollSource() {
   return useMutation({ mutationFn: rollSource });
+}
+
+export function useBrowseDir(path: string, enabled: boolean) {
+  return useQuery({
+    queryKey: sourceKeys.browse(path),
+    queryFn: () => fetchBrowseDir(path),
+    enabled,
+  });
 }
 
 /** Invalidates the sources list whenever the server reports its config changed elsewhere (e.g. another client). */

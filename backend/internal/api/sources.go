@@ -95,6 +95,22 @@ type validateSourceResponse struct {
 	Message      string           `json:"message"`
 }
 
+type browseEntryDTO struct {
+	Name    string `json:"name"`
+	Path    string `json:"path"`
+	Type    string `json:"type"`
+	Size    int64  `json:"size"`
+	ModTime string `json:"modTime"`
+}
+
+type browseResponseDTO struct {
+	Path     string           `json:"path"`
+	Parent   string           `json:"parent"`
+	Entries  []browseEntryDTO `json:"entries"`
+	Readable bool             `json:"readable"`
+	Message  string           `json:"message"`
+}
+
 type sourceFileDTO struct {
 	File    string `json:"file"`
 	Size    int64  `json:"size"`
@@ -291,6 +307,23 @@ func (h *Handler) validateSource(w http.ResponseWriter, r *http.Request) {
 		MatchedFiles: matched,
 		Readable:     res.Readable,
 		Message:      res.LastError,
+	})
+}
+
+// GET /api/v1/sources/browse?path=
+func (h *Handler) browseFilesystem(w http.ResponseWriter, r *http.Request) {
+	listing := logsource.ListDir(r.URL.Query().Get("path"))
+
+	entries := make([]browseEntryDTO, len(listing.Entries))
+	for i, e := range listing.Entries {
+		entries[i] = browseEntryDTO{Name: e.Name, Path: e.Path, Type: e.Type, Size: e.Size, ModTime: formatModTime(e.ModTime)}
+	}
+	writeJSON(w, http.StatusOK, browseResponseDTO{
+		Path:     listing.Path,
+		Parent:   listing.Parent,
+		Entries:  entries,
+		Readable: listing.Readable,
+		Message:  listing.LastError,
 	})
 }
 
