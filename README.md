@@ -9,17 +9,22 @@ dark-mode-first web UI: split panes instead of stacked tiles, regex search with
 highlighting, automatic log-level coloring, pause/resume autoscroll, and one-click
 download or truncate ("roll") of a source.
 
-> **Status:** early development — not yet ready for production use.
-
-## Features (planned for v1)
+## Features
 
 - Live tailing of log files and directories, streamed over WebSocket
-- Multi-pane / split-view layout for watching several sources at once
-- Regex or plain-text search with match highlighting and "only matching lines" filter
+- Multi-pane / split-view layout for watching several sources at once (open a source in
+  the active pane with a click, or in a new pane with a middle-click, up to 4 panes)
+- A graphical file browser for picking a log file or directory instead of typing a path
+- Regex or plain-text search with match highlighting, case-sensitive matching, an
+  "only matching lines" filter, and prev/next match navigation
 - Automatic log-level highlighting (ERROR/WARN/INFO/DEBUG)
-- Pause/resume autoscroll, dark mode by default
-- Source management from the UI (add/edit/remove), backed by a single YAML config file
+- Pause/resume autoscroll with a "jump to latest" indicator, plus on-demand loading of
+  older lines by scrolling up
+- Source management from the UI (add/edit/remove, tags, accent colors), backed by a
+  single YAML config file
 - Download and truncate ("roll") actions per source
+- Dark/light theme toggle, and an in-app help dialog (Finnish/English) covering every
+  feature
 - Single Docker image, PUID/PGID support for Unraid-style permission handling
 - No built-in auth — intended to sit behind your LAN or a reverse proxy (e.g. Authelia)
 
@@ -38,6 +43,14 @@ docker run -d \
 ```
 
 Then open `http://<unraid-ip>:8080`.
+
+Other environment variables the server understands, all optional:
+
+| Variable            | Default              | Purpose                                  |
+| ------------------- | --------------------- | ----------------------------------------- |
+| `LOGPANE_CONFIG`     | `/config/logpane.yaml` | Path to the YAML config file              |
+| `LOGPANE_PORT`       | `8080`                 | HTTP port the server listens on           |
+| `LOGPANE_LOG_LEVEL`  | `info`                 | Server log verbosity                      |
 
 ## Development
 

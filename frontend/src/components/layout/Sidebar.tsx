@@ -8,6 +8,7 @@ import { Button } from "../common/Button";
 import { Tooltip } from "../common/Tooltip";
 import { EmptyState } from "../common/EmptyState";
 import { ThemeToggle } from "../common/ThemeToggle";
+import { HelpButton } from "../common/HelpButton";
 import { SourceFormDialog } from "../sources/SourceFormDialog";
 import { SourceListItem } from "./SourceListItem";
 
@@ -31,6 +32,7 @@ export function Sidebar({ onManageSources }: SidebarProps) {
       <div className="flex items-center gap-2 border-b border-slate-200 px-3 py-3 dark:border-slate-800">
         <ScrollText className="size-5 text-sky-500" aria-hidden="true" />
         <span className="flex-1 text-sm font-semibold tracking-tight">Logpane</span>
+        <HelpButton />
         <ThemeToggle />
       </div>
 
