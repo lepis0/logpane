@@ -111,6 +111,15 @@ export function LogPane({ pane }: LogPaneProps) {
     });
   };
 
+  if (pane.sourceId && !sources) {
+    // Restored from the previous session; the source list hasn't loaded yet.
+    return (
+      <div className="flex h-full flex-col" onMouseDown={() => setActivePane(pane.id)}>
+        <EmptyState title="Loading source…" />
+      </div>
+    );
+  }
+
   if (!pane.sourceId || !source) {
     return (
       <div

@@ -14,6 +14,8 @@ download or truncate ("roll") of a source.
 - Live tailing of log files and directories, streamed over WebSocket
 - Multi-pane / split-view layout for watching several sources at once (open a source in
   the active pane with a click, or in a new pane with a middle-click, up to 4 panes)
+- The browser remembers which sources were open in which panes, so reloading or coming
+  back later restores the previous session's layout
 - A graphical file browser for picking a log file or directory instead of typing a path
 - Regex or plain-text search with match highlighting, case-sensitive matching, an
   "only matching lines" filter, and prev/next match navigation

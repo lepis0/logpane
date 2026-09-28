@@ -7,6 +7,7 @@ import { SourceManagerPage } from "./components/sources/SourceManagerPage";
 import { focusPaneSearchInput } from "./lib/paneSearchRefs";
 import { useUiStore } from "./stores/uiStore";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
+import { usePruneRestoredPanes } from "./hooks/usePruneRestoredPanes";
 import { useSourcesChangedInvalidation } from "./api/sources";
 
 export function App() {
@@ -15,6 +16,7 @@ export function App() {
   const [manageOpen, setManageOpen] = useState(false);
 
   useSourcesChangedInvalidation();
+  usePruneRestoredPanes();
 
   // Keep the <html class="dark"> toggle (set synchronously pre-paint in index.html) in sync
   // with the persisted theme once React/zustand has hydrated.

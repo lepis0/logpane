@@ -47,9 +47,47 @@ interface UiActions {
   updatePaneSearch: (paneId: string, patch: Partial<PaneSearchState>) => void;
   setPaneAutoscrollPaused: (paneId: string, paused: boolean) => void;
   toggleSidebar: () => void;
+  /** Close panes whose source no longer exists (e.g. deleted since the layout was saved). */
+  closePanesForMissingSources: (existingSourceIds: string[]) => void;
 }
 
 export type UiStore = UiState & UiActions;
+
+/** What survives a reload: which sources were open, in which order, and which pane had focus. */
+interface PersistedPane {
+  id: string;
+  sourceId: string;
+}
+
+interface PersistedUiState {
+  theme: Theme;
+  sidebarCollapsed: boolean;
+  panes: PersistedPane[];
+  activePaneId: string | null;
+}
+
+function isPersistedPane(value: unknown): value is PersistedPane {
+  if (typeof value !== "object" || value === null) return false;
+  const pane = value as Record<string, unknown>;
+  return typeof pane.id === "string" && typeof pane.sourceId === "string";
+}
+
+/**
+ * Rebuild live pane state from whatever was in localStorage. Storage may hold an older
+ * shape (before panes were persisted) or be hand-edited, so everything is validated;
+ * per-pane search and autoscroll state always start fresh.
+ */
+export function restorePanes(persisted: unknown): Pick<UiState, "panes" | "activePaneId"> {
+  const stored = (persisted ?? {}) as Partial<Record<keyof PersistedUiState, unknown>>;
+  const panes: PaneState[] = (Array.isArray(stored.panes) ? stored.panes : [])
+    .filter(isPersistedPane)
+    .slice(0, MAX_PANES)
+    .map((p) => ({ id: p.id, sourceId: p.sourceId, search: defaultPaneSearch(), autoscrollPaused: false }));
+  const activePaneId = panes.some((p) => p.id === stored.activePaneId)
+    ? (stored.activePaneId as string)
+    : panes[panes.length - 1]?.id ?? null;
+  return { panes, activePaneId };
+}
 
 export const useUiStore = create<UiStore>()(
   persist(
@@ -120,13 +158,38 @@ export const useUiStore = create<UiStore>()(
         })),
 
       toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
+
+      closePanesForMissingSources: (existingSourceIds) =>
+        set((s) => {
+          const existing = new Set(existingSourceIds);
+          const panes = s.panes.filter((p) => p.sourceId === null || existing.has(p.sourceId));
+          if (panes.length === s.panes.length) return {};
+          const activePaneId = panes.some((p) => p.id === s.activePaneId)
+            ? s.activePaneId
+            : panes[panes.length - 1]?.id ?? null;
+          return { panes, activePaneId };
+        }),
     }),
     {
       name: "logpane-ui",
       storage: createJSONStorage(() => localStorage),
-      // Only theme/sidebar survive a reload; pane layout is intentionally ephemeral
-      // since it references live source ids and search state that shouldn't outlive the tab.
-      partialize: (state) => ({ theme: state.theme, sidebarCollapsed: state.sidebarCollapsed }),
+      // The open panes survive a reload so the previous session's layout comes back.
+      // Only each pane's source is kept; search and autoscroll state are per-session.
+      partialize: (state): PersistedUiState => ({
+        theme: state.theme,
+        sidebarCollapsed: state.sidebarCollapsed,
+        panes: state.panes.flatMap((p) => (p.sourceId ? [{ id: p.id, sourceId: p.sourceId }] : [])),
+        activePaneId: state.activePaneId,
+      }),
+      merge: (persisted, current) => {
+        const stored = (persisted ?? {}) as Partial<PersistedUiState>;
+        return {
+          ...current,
+          ...(stored.theme === "dark" || stored.theme === "light" ? { theme: stored.theme } : {}),
+          ...(typeof stored.sidebarCollapsed === "boolean" ? { sidebarCollapsed: stored.sidebarCollapsed } : {}),
+          ...restorePanes(persisted),
+        };
+      },
       version: 1,
     },
   ),
