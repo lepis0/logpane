@@ -13,6 +13,10 @@ updates:
       npm:
         patterns:
           - "*"
+    ignore:
+      # typescript-eslint only supports TypeScript <6.1; drop this once it supports 7.x.
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: docker
     directory: /
