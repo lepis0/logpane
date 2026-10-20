@@ -187,7 +187,7 @@ function SourceFormDialogInner({ mode, open, onOpenChange, source }: SourceFormD
               <span className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">Type</span>
               <Select.Root
                 value={form.type}
-                onValueChange={(value: SourceType) => setForm((f) => ({ ...f, type: value }))}
+                onValueChange={(value) => setForm((f) => ({ ...f, type: value as SourceType }))}
                 disabled={mode === "edit"}
               >
                 <Select.Trigger className="flex w-full items-center justify-between rounded-md border border-slate-300 bg-transparent px-2.5 py-1.5 text-sm outline-none focus:border-sky-500 disabled:opacity-50 dark:border-slate-700">
